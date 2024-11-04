@@ -1,28 +1,36 @@
 <template>
   <div id="app">
-    <router-view/>
-  </div> 
+    <!-- 顯示模式選擇組件 -->
+    <RoleSelection @onSelectRole="navigateToRole" />
+    <!-- 根據路由顯示對應組件 -->
+    <router-view></router-view>
+  </div>
 </template>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
+<script>
+import RoleSelection from './components/RoleSelection.vue';
 
-nav {
-  padding: 30px;
-}
+export default {
+  components: {
+    RoleSelection
+  },
+  methods: {
+    navigateToRole(selectedRole) {
+      // 根據選擇的角色導航到不同路由
+      if (selectedRole === 'student') {
+        this.$router.push('/student-login');
+      } else if (selectedRole === 'teacher') {
+        this.$router.push('/teacher-panel');
+      }
+    }
+  }
+};
+</script>
 
-nav a {
-  font-weight: bold;
-  color: #2c3e50;
-}
-
-nav a.router-link-exact-active {
-  color: #42b983;
+<style scoped>
+button {
+  margin: 5px;
+  padding: 10px;
+  font-size: 16px;
 }
 </style>

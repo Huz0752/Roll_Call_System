@@ -1,6 +1,8 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
-import Ping from '../components/Ping.vue'
+import { createRouter, createWebHistory } from 'vue-router';
+import HomeView from '../views/HomeView.vue';
+import StudentLogin from '../components/StudentLogin.vue';
+import TeacherPanel from '../components/TeacherPanel.vue';
+import StudentQRLogin from '../components/StudentQRLogin.vue'; // 導入 StudentQRLogin.vue
 
 const routes = [
   {
@@ -9,23 +11,25 @@ const routes = [
     component: HomeView
   },
   {
-    path: '/about',
-    name: 'about',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/AboutView.vue')
+    path: '/student-login',
+    name: 'StudentLogin',
+    component: StudentLogin
   },
   {
-    path: '/ping',
-    name: 'Ping',
-    component: Ping,
+    path: '/teacher-panel',
+    name: 'TeacherPanel',
+    component: TeacherPanel
   },
-]
+  {
+    path: '/qr-login', // 新增 QR Code 掃描後的登入頁面路由
+    name: 'StudentQRLogin',
+    component: StudentQRLogin
+  }
+];
 
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes
-})
+});
 
-export default router
+export default router;
