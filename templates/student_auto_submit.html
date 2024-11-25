@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>自動提交 PIN 碼</title>
+</head>
+<body>
+    <h1>正在提交 PIN 碼...</h1>
+
+    <script>
+        // 獲取 URL 中的 pin_code 參數
+        const urlParams = new URLSearchParams(window.location.search);
+        const pin_code = urlParams.get('pin_code');
+
+        // 檢查是否已登入
+        fetch('/check_login', {
+            method: 'GET',
+            credentials: 'include'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.logged_in && data.user_type === 'student') {
+                // 以登入，直接提交 PIN 碼
+                submitPin(pin_code);
+            } else {
+                // 未登入，跳轉到登入頁面
+                alert('請先登入');
+                // noinspection JSUnresolvedVariable
+                window.location.href = '{{ url_for('student_login_page') }}';
+            }
+        });
+
+        function submitPin(pin_code) {
+            fetch('/student/submit_pin', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({pin_code})
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                // noinspection JSUnresolvedVariable
+                window.location.href = '{{ url_for('student_dashboard_page') }}';
+            });
+        }
+    </script>
+</body>
+</html>

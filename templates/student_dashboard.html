@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>學生主頁</title>
+</head>
+<body>
+    <h1>歡迎，學生</h1>
+    <form id="submitPinForm">
+        輸入 PIN 碼：<input type="text" name="pin_code" required><br>
+        <button type="submit">提交</button>
+    </form>
+    <button id="logoutButton">登出</button>
+
+    <script>
+        // 檢查是否有待提交的 PIN 碼
+        window.onload = function() {
+            fetch('/get_pin_code', {
+                method: 'GET',
+                credentials: 'include'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.pin_code) {
+                    // 有 PIN 碼，自动提交
+                    submitPin(data.pin_code);
+                }
+            });
+
+            function submitPin(pin_code) {
+                fetch('/student/submit_pin', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({pin_code})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    // 清除服务器端的 PIN 碼
+                    fetch('/clear_pin_code', {
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+                });
+            }
+        };
+
+        // 表單提交 PIN 碼的功能
+        document.getElementById('submitPinForm').onsubmit = function(e) {
+            e.preventDefault();
+            const data = {
+                pin_code: this.pin_code.value
+            };
+            fetch('/student/submit_pin', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+            });
+        };
+
+        // 登出按鈕功能
+        document.getElementById('logoutButton').onclick = function() {
+            fetch('/logout', {
+                method: 'POST',
+                credentials: 'include'
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                // noinspection JSUnresolvedVariable
+                window.location.href = '{{ url_for('student_login_page') }}';
+            });
+        };
+    </script>
+</body>
+</html>
+

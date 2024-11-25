@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>教師主頁</title>
+</head>
+<body>
+    <h1>歡迎，教師</h1>
+    <h2>發布點名 PIN 碼</h2>
+    <form id="publishPinForm">
+        課程名稱：<input type="text" name="course_name" required><br>
+        點名時長（分鐘）：<input type="number" name="duration" value="5"><br>
+        <button type="submit">生成 PIN 碼</button>
+    </form>
+    <div id="pinDisplay" style="display:none;">
+        <h3>PIN 碼：<span id="pinCode"></span></h3>
+        <img id="qrCodeImage" src="" alt="QR Code">
+    </div>
+
+    <h2>上傳學生名單並比較出勤狀況</h2>
+    <form id="uploadRosterForm" enctype="multipart/form-data">
+        課程名稱：<input type="text" name="course_name" required><br>
+        學生名單文件（CSV 或 TXT）：<input type="file" name="file" accept=".csv, .txt" required><br>
+        <button type="submit">上傳並比較</button>
+    </form>
+    <div id="absentStudents" style="display:none;">
+        <h3>缺勤學生：</h3>
+        <ul id="absentList"></ul>
+    </div>
+
+    <button id="exportAttendanceButton">倒出出勤數據</button>
+    <button id="logoutButton">登出</button>
+
+    <script>
+        document.getElementById('publishPinForm').onsubmit = function(e) {
+            e.preventDefault();
+            const data = {
+                course_name: this.course_name.value,
+                duration: this.duration.value
+            };
+            fetch('/teacher/publish_pin', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.pin_code) {
+                    document.getElementById('pinCode').textContent = data.pin_code;
+                    document.getElementById('qrCodeImage').src = 'data:image/png;base64,' + data.qr_code;
+                    document.getElementById('pinDisplay').style.display = 'block';
+                } else {
+                    alert(data.message);
+                }
+            });
+        };
+
+        document.getElementById('uploadRosterForm').onsubmit = function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            fetch('/teacher/upload_roster', {
+                method: 'POST',
+                credentials: 'include',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.absent_students) {
+                    const absentList = document.getElementById('absentList');
+                    absentList.innerHTML = '';
+                    data.absent_students.forEach(student_id => {
+                        const li = document.createElement('li');
+                        li.textContent = student_id;
+                        absentList.appendChild(li);
+                    });
+                    document.getElementById('absentStudents').style.display = 'block';
+                } else {
+                    alert(data.message);
+                }
+            });
+        };
+
+        document.getElementById('exportAttendanceButton').onclick = function() {
+            const course_name = prompt('請輸入要導出出勤數據的課程名稱：');
+            if (course_name) {
+                window.location.href = '/teacher/export_attendance?course_name=' + encodeURIComponent(course_name);
+            }
+        };
+
+        document.getElementById('logoutButton').onclick = function() {
+            fetch('/logout', {
+                method: 'POST',
+                credentials: 'include'
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                // noinspection JSUnresolvedVariable
+                window.location.href = '{{ url_for('teacher_login_page') }}';
+            });
+        };
+    </script>
+</body>
+</html>

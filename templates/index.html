@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>選擇身份</title>
+    <style>
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            gap: 20px;
+        }
+        .role-button {
+            padding: 20px 40px;
+            font-size: 18px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            transition: background-color 0.3s;
+        }
+        .role-button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="role-button" onclick="window.location.href='{{ url_for('student_login_page') }}'">
+            學生入口
+        </button>
+        <button class="role-button" onclick="window.location.href='{{ url_for('teacher_login_page') }}'">
+            教師入口
+        </button>
+    </div>
+</body>
+</html>
