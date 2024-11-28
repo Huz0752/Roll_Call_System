@@ -16,5 +16,4 @@
 `pip install -r requirements.txt` 安裝相關套件
 
 # How to run
-`前端: npm run serve` // 要在frontend資料夾下commmand
-`後端: python ./backend/app.py`
+`command line: python app.py` 
