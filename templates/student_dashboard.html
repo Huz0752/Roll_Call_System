@@ -2,17 +2,48 @@
 <html>
 <head>
     <title>學生主頁</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f7f7f7;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .section {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        #logoutButton {
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
-    <h1>歡迎，學生</h1>
-    <form id="submitPinForm">
-        輸入 PIN 碼：<input type="text" name="pin_code" required><br>
-        <button type="submit">提交</button>
-    </form>
-    <button id="logoutButton">登出</button>
+    <div class="container">
+        <h1 class="text-center mb-5">歡迎，{{ current_user.student_id }}</h1>
+
+        <div class="section shadow">
+            <form id="submitPinForm">
+                <div class="form-group">
+                    <label for="pin_code">輸入 PIN 碼</label>
+                    <input type="text" class="form-control" id="pin_code" name="pin_code" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">提交</button>
+            </form>
+        </div>
+
+        <div class="text-center">
+            <button id="logoutButton" class="btn btn-danger">登出</button>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // 檢查是否有待提交的 PIN 碼
         window.onload = function() {
             fetch('/get_pin_code', {
                 method: 'GET',
@@ -21,7 +52,6 @@
             .then(response => response.json())
             .then(data => {
                 if (data.pin_code) {
-                    // 有 PIN 碼，自动提交
                     submitPin(data.pin_code);
                 }
             });
@@ -36,7 +66,6 @@
                 .then(response => response.json())
                 .then(data => {
                     alert(data.message);
-                    // 清除服务器端的 PIN 碼
                     fetch('/clear_pin_code', {
                         method: 'POST',
                         credentials: 'include'
@@ -72,7 +101,6 @@
             .then(response => response.json())
             .then(data => {
                 alert(data.message);
-                // noinspection JSUnresolvedVariable
                 window.location.href = '{{ url_for('student_login_page') }}';
             });
         };
