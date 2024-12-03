@@ -386,6 +386,10 @@ def export_attendance():
     output = make_response(si.getvalue())
     output.headers["Content-Disposition"] = f"attachment; filename={course_name}_attendance.csv"
     output.headers["Content-type"] = "text/csv"
+
+    Attendance.query.filter_by(course_id=course.id).delete()
+    db.session.delete(course)
+    db.session.commit()
     return output
 
 
