@@ -35,7 +35,8 @@ CORS(app)
 # set up LoginManager
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'login'
+login_manager.login_view = 'student.login'
+login_manager.login_view = 'teacher.login'
 
 # create all database tables
 with app.app_context():
@@ -137,7 +138,7 @@ def student_register():
 
 
 # route for student login
-@app.route('/student/login', methods=['POST'])
+@app.route('/student/login', endpoint='student.login', methods=['POST'])
 def student_login():
     data = request.get_json()
     student_id = data.get('student_id')
@@ -172,7 +173,7 @@ def teacher_register():
 
 
 # route for teacher login
-@app.route('/teacher/login', methods=['POST'])
+@app.route('/teacher/login', endpoint='teacher.login', methods=['POST'])
 def teacher_login():
     data = request.get_json()
     teacher_name = data.get('teacher_name')
@@ -218,7 +219,7 @@ def submit_pin():
             # check if student has already attended
             existing_attendance = Attendance.query.filter_by(
                 student_id=current_user.id,
-                course_id=pin_info['course_id']
+                course_id=pin_info['course_id'], 
             ).first()
             if existing_attendance:
                 return jsonify({'message': '您已經簽到過了'}), 400
@@ -227,7 +228,7 @@ def submit_pin():
             attendance = Attendance(
                 student_id=current_user.id,
                 course_id=pin_info['course_id'],
-                ip_address=ip_address
+                ip_address=ip_address, 
             )
             db.session.add(attendance)
             db.session.commit()
@@ -283,7 +284,7 @@ def publish_pin():
     img.save(buf, format='PNG')
     image_base64 = base64.b64encode(buf.getvalue()).decode('utf-8')
 
-    return jsonify({'pin_code': pin_code, 'qr_code': image_base64})
+    return jsonify({'pin_code': pin_code, 'qr_code': image_base64, 'expires_at':expires_at.timestamp()})
 
 
 # route for auto submittin PIN code for attendance

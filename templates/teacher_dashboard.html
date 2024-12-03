@@ -33,7 +33,7 @@
         <h1 class="text-center mb-5">歡迎，{{ current_user.teacher_name }}</h1>
 
         <div class="section shadow">
-            <h2>發佈點名 PIN 碼</h2>
+            <h2>發布點名 PIN 碼</h2>
             <form id="publishPinForm">
                 <div class="form-group">
                     <label for="course_name">課程名稱</label>
@@ -47,6 +47,7 @@
             </form>
             <div id="pinDisplay" style="display:none;">
                 <h3>PIN 碼：<span id="pinCode" class="text-primary"></span></h3>
+                <h3>剩餘時間: <span id="countdownTimer" class="text-danger"></span></h3>
                 <img id="qrCodeImage" src="" alt="QR Code">
             </div>
         </div>
@@ -94,8 +95,9 @@
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <script>
+        // 處理生成 PIN 碼邏輯
         document.getElementById('publishPinForm').onsubmit = function(e) {
             e.preventDefault();
             const data = {
@@ -105,7 +107,7 @@
             fetch('/teacher/publish_pin', {
                 method: 'POST',
                 credentials: 'include',
-                headers: {'Content-Type': 'application/json'},
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             })
             .then(response => response.json())
@@ -114,25 +116,48 @@
                     document.getElementById('pinCode').textContent = data.pin_code;
                     document.getElementById('qrCodeImage').src = 'data:image/png;base64,' + data.qr_code;
                     document.getElementById('pinDisplay').style.display = 'block';
+                    
+                    // 開始倒數計時
+                    const expiresAt = data.expires_at * 1000;
+                    startCountdown(expiresAt);
                 } else {
                     alert(data.message);
                 }
             });
         };
 
+        // 倒數計時函數
+        function startCountdown(expiresAt) {
+            const countdownElement = document.getElementById('countdownTimer');
+            const interval = setInterval(function() {
+                const now = new Date().getTime();
+                const distance = expiresAt - now;
+
+                if (distance <= 0) {
+                    clearInterval(interval);
+                    countdownElement.textContent = '已過期';
+                    document.getElementById('pinDisplay').style.display = 'none';
+                } else {
+                    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                    countdownElement.textContent = minutes + "分 " + seconds + "秒";
+                }
+            }, 1000);
+        }
+
+        // 處理上傳學生名單邏輯
         document.getElementById('uploadRosterForm').onsubmit = function(e) {
             e.preventDefault();
             const formData = new FormData(this);
             const fileInput = document.getElementById('file');
             const file = fileInput.files[0];
-            
-            // 先讀取檔案計算總人數
+
             const reader = new FileReader();
             reader.onload = function(e) {
                 const content = e.target.result;
                 const studentList = content.trim().split('\n');
                 const totalStudents = studentList.length;
-                
+
                 fetch('/teacher/upload_roster', {
                     method: 'POST',
                     credentials: 'include',
@@ -143,26 +168,23 @@
                     if (data.absent_students) {
                         const absentList = document.getElementById('absentList');
                         absentList.innerHTML = '';
-                        
-                        // 計算統計數據
+
                         const absentCount = data.absent_students.length;
                         const attendanceRate = Math.round(((totalStudents - absentCount) / totalStudents) * 100);
-                        
-                        // 更新統計資訊
+
                         document.getElementById('totalStudents').textContent = totalStudents;
                         document.getElementById('absentCount').textContent = absentCount;
                         document.getElementById('attendanceRate').textContent = attendanceRate;
-                        
-                        // 顯示缺勤學生列表
+
                         data.absent_students.sort().forEach((student_id, index) => {
                             const tr = document.createElement('tr');
-                            
+
                             const tdIndex = document.createElement('td');
                             tdIndex.textContent = index + 1;
-                            
+
                             const tdId = document.createElement('td');
                             tdId.textContent = student_id;
-                            
+
                             tr.appendChild(tdIndex);
                             tr.appendChild(tdId);
                             absentList.appendChild(tr);
@@ -176,6 +198,7 @@
             reader.readAsText(file);
         };
 
+        // 導出出勤數據
         document.getElementById('exportAttendanceButton').onclick = function() {
             const course_name = prompt('請輸入要導出出勤數據的課程名稱：');
             if (course_name) {
@@ -183,6 +206,7 @@
             }
         };
 
+        // 處理登出邏輯
         document.getElementById('logoutButton').onclick = function() {
             fetch('/logout', {
                 method: 'POST',
