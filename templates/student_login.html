@@ -55,7 +55,18 @@
             .then(response => response.json())
             .then(data => {
                 if (data.message === '登入成功') {
-                    window.location.href = '{{ url_for('student_dashboard_page') }}';
+                    fetch('/get_pin_code',{
+                        method: 'GET', 
+                        credentials: 'include'
+                    })
+                    .then(response => response.json())
+                    .then(pinData => {
+                        if (pinData.pin_code) {
+                            window.location.href = '/student/auto_submit?pin_code=' + pinData.pin_code;
+                        }else{
+                            window.location.href = '{{url_for('student_dashboard_page')}}';
+                        }
+                    });
                 } else {
                     alert(data.message);
                 }

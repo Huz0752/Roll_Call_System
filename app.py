@@ -288,14 +288,37 @@ def publish_pin():
 
 
 # route for auto submittin PIN code for attendance
-@app.route('/student/auto_submit', methods=['GET'])
+@app.route('/student/auto_submit', methods=['GET', 'POST'])
 def auto_submit():
     pin_code = request.args.get('pin_code')
     session['pin_code'] = pin_code 
 
     # redirect based on authentication status
     if current_user.is_authenticated and isinstance(current_user, Student):
-        return redirect(url_for('student_dashboard_page'))
+        ip_address = request.headers.get('X-Forwarded-For', request.remote_addr)
+        if pin_code in valid_pins:
+            pin_info = valid_pins[pin_code]
+            if datetime.now(taipei_timezone) < pin_info['expires_at']:
+                existing_attendance = Attendance.query.filter_by(
+                    student_id = current_user.id,
+                    course_id = pin_info['course_id'],
+                ).first()
+                if existing_attendance:
+                    message = '已經簽到過了'
+                else:
+                    attendance = Attendance(
+                        student_id = current_user.id,
+                        course_id = pin_info['course_id'],
+                        ip_address = ip_address,
+                    )
+                    db.session.add(attendance)
+                    db.session.commit()
+                    message = '點名成功'
+            else:
+                message = 'PIN碼已過期'
+        else:
+            message = '無效的PIN碼'
+        return render_template('student_signin_success.html', message=message)
     else:
         return redirect(url_for('student_login_page'))
 

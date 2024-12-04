@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>簽到結果</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f7f7f7;
+        }
+        .container {
+            margin-top: 100px;
+            max-width: 500px;
+            padding: 30px;
+            background-color: white;
+            border-radius: 10px;
+            text-align: center;
+        }
+        #logoutButton {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container shadow">
+        <h2>{{ message }}</h2>
+        <button id="logoutButton" class="btn btn-danger">登出</button>
+    </div>
+
+    <script>
+        document.getElementById('logoutButton').onclick = function() {
+            fetch('/logout', {
+                method: 'POST',
+                credentials: 'include'
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                window.location.href = '{{ url_for('student_login_page') }}';
+            });
+        };
+    </script>
+</body>
+</html>
